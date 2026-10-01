@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MailShield AI | Spam Email Classifier</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Inter, Arial, sans-serif;
+            background: #07111f;
+            color: #f5f7fb;
+            min-height: 100vh;
+        }
+
+        /* Background glow */
+
+        body::before {
+            content: "";
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: rgba(37, 99, 235, 0.18);
+            filter: blur(120px);
+            top: -150px;
+            left: -100px;
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            width: 450px;
+            height: 450px;
+            background: rgba(124, 58, 237, 0.15);
+            filter: blur(120px);
+            bottom: -150px;
+            right: -100px;
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        /* NAVBAR */
+
+        nav {
+            width: 100%;
+            padding: 22px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            background: rgba(7,17,31,0.7);
+            backdrop-filter: blur(15px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 21px;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+        }
+
+        .logo span {
+            color: #60a5fa;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 10px #22c55e;
+        }
+
+        /* MAIN */
+
+        .main {
+            width: 90%;
+            max-width: 1050px;
+            margin: auto;
+            padding: 70px 0;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 30px;
+            background: rgba(37,99,235,0.12);
+            border: 1px solid rgba(96,165,250,0.25);
+            color: #60a5fa;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: clamp(38px, 6vw, 65px);
+            line-height: 1.05;
+            margin-bottom: 18px;
+            letter-spacing: -2px;
+        }
+
+        h1 span {
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            max-width: 650px;
+            margin: auto;
+            color: #94a3b8;
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        /* CARD */
+
+        .card {
+            background: rgba(15, 27, 45, 0.85);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.3);
+            backdrop-filter: blur(20px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .mail-icon {
+            width: 38px;
+            height: 38px;
+            background: rgba(37,99,235,0.15);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .secure {
+            font-size: 12px;
+            color: #22c55e;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 230px;
+            resize: vertical;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: #091525;
+            color: #e5e7eb;
+            border-radius: 16px;
+            padding: 20px;
+            font-size: 15px;
+            line-height: 1.6;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        textarea::placeholder {
+            color: #64748b;
+        }
+
+        textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.08);
+        }
+
+        .analyze-btn {
+            width: 100%;
+            margin-top: 18px;
+            border: none;
+            border-radius: 14px;
+            padding: 17px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            background: linear-gradient(90deg, #2563eb, #7c3aed);
+            transition: 0.25s;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(37,99,235,0.3);
+        }
+
+        /* RESULT */
+
+        .result {
+            margin-top: 25px;
+            padding: 25px;
+            border-radius: 18px;
+            text-align: center;
+            animation: appear 0.4s ease;
+        }
+
+        @keyframes appear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .spam {
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.25);
+        }
+
+        .not-spam {
+            background: rgba(34,197,94,0.08);
+            border: 1px solid rgba(34,197,94,0.25);
+        }
+
+        .result-icon {
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        .result h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .spam h2 {
+            color: #f87171;
+        }
+
+        .not-spam h2 {
+            color: #4ade80;
+        }
+
+        .result p {
+            color: #94a3b8;
+        }
+
+        .confidence {
+            margin-top: 18px;
+        }
+
+        .confidence-text {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+            font-size: 13px;
+        }
+
+        .progress {
+            height: 8px;
+            background: #1e293b;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: {{ probability or 0 }}%;
+            background: linear-gradient(90deg, #2563eb, #8b5cf6);
+            border-radius: 10px;
+        }
+
+        /* FEATURES */
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .feature {
+            background: rgba(15,27,45,0.65);
+            border: 1px solid rgba(255,255,255,0.07);
+            padding: 22px;
+            border-radius: 18px;
+        }
+
+        .feature-icon {
+            font-size: 25px;
+            margin-bottom: 12px;
+        }
+
+        .feature h3 {
+            font-size: 15px;
+            margin-bottom: 7px;
+        }
+
+        .feature p {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        /* FOOTER */
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            padding: 30px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            margin-top: 60px;
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 700px) {
+
+            .main {
+                padding: 45px 0;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                padding: 18px 5%;
+            }
+
+            .status {
+                display: none;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body>
+
+<!-- NAVIGATION -->
+
+<nav>
+
+    <div class="logo">
+
+        <div class="logo-icon">
+            🛡️
+        </div>
+
+        MailShield <span>AI</span>
+
+    </div>
+
+    <div class="status">
+        <div class="status-dot"></div>
+        AI Engine Online
+    </div>
+
+</nav>
+
+
+<!-- MAIN -->
+
+<div class="main">
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+        <div class="badge">
+            MACHINE LEARNING • EMAIL SECURITY
+        </div>
+
+        <h1>
+            Detect Spam with<br>
+            <span>Artificial Intelligence</span>
+        </h1>
+
+        <p>
+            Analyze suspicious email messages using machine learning
+            and intelligently identify whether they are spam or legitimate.
+        </p>
+
+    </section>
+
+
+    <!-- CLASSIFIER -->
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <div class="card-title">
+
+                <div class="mail-icon">
+                    📧
+                </div>
+
+                Email Analyzer
+
+            </div>
+
+            <div class="secure">
+                ● Secure Analysis
+            </div>
+
+        </div>
+
+
+        <form method="POST">
+
+            <textarea
+                name="email"
+                placeholder="Paste the email content here...
+
+Example:
+Congratulations! You have won a free prize. Click here to claim your reward..."
+                required
+            >{{ email_text }}</textarea>
+
+
+            <button class="analyze-btn" type="submit">
+
+                🔍 &nbsp; Analyze Email
+
+            </button>
+
+        </form>
+
+
+        <!-- RESULT -->
+
+        {% if prediction %}
+
+            {% if prediction == "SPAM" %}
+
+                <div class="result spam">
+
+                    <div class="result-icon">
+                        🚨
+                    </div>
+
+                    <h2>
+                        Spam Detected
+                    </h2>
+
+                    <p>
+                        This email has been classified as suspicious.
+                    </p>
+
+                    {% if probability %}
+
+                        <div class="confidence">
+
+                            <div class="confidence-text">
+
+                                <span>Model Confidence</span>
+
+                                <strong>{{ probability }}%</strong>
+
+                            </div>
+
+                            <div class="progress">
+
+                                <div class="progress-bar"></div>
+
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+            {% elif prediction == "NOT SPAM" %}
+
+                <div class="result not-spam">
+
+                    <div class="result-icon">
+                        ✅
+                    </div>
+
+                    <h2>
+                        Legitimate Email
+                    </h2>
+
+                    <p>
+                        This email appears to be safe and legitimate.
+                    </p>
+
+                    {% if probability %}
+
+                        <div class="confidence">
+
+                            <div class="confidence-text">
+
+                                <span>Model Confidence</span>
+
+                                <strong>{{ probability }}%</strong>
+
+                            </div>
+
+                            <div class="progress">
+
+                                <div class="progress-bar"></div>
+
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+            {% else %}
+
+                <div class="result">
+
+                    <h2>{{ prediction }}</h2>
+
+                </div>
+
+            {% endif %}
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- FEATURES -->
+
+    <div class="features">
+
+        <div class="feature">
+
+            <div class="feature-icon">
+                🧠
+            </div>
+
+            <h3>
+                Machine Learning
+            </h3>
+
+            <p>
+                The system learns patterns from previously classified
+                spam and legitimate emails.
+            </p>
+
+        </div>
+
+
+        <div class="feature">
+
+            <div class="feature-icon">
+                📊
+            </div>
+
+            <h3>
+                TF-IDF Analysis
+            </h3>
+
+            <p>
+                Email text is converted into numerical features
+                that can be processed by the ML model.
+            </p>
+
+        </div>
+
+
+        <div class="feature">
+
+            <div class="feature-icon">
+                🛡️
+            </div>
+
+            <h3>
+                Naive Bayes
+            </h3>
+
+            <p>
+                A classification algorithm predicts whether an
+                email belongs to the spam category.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- FOOTER -->
+
+<footer>
+
+    MailShield AI • Spam Email Classification System
+
+    <br><br>
+
+    Built using Python • Flask • Scikit-learn • TF-IDF • Naive Bayes
+
+</footer>
+
+
+</body>
+</html>
